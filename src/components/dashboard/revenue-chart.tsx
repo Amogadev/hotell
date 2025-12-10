@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import type { PaymentMode } from '@/lib/types';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
@@ -17,7 +17,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
     };
 
     return (
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
             <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                     <XAxis
@@ -41,7 +41,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
                             indicator='dot'
                         />}
                     />
-                    <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="amount" fill="var(--color-amount)" radius={[4, 4, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </ChartContainer>

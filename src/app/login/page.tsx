@@ -31,35 +31,27 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
-    // Dummy validation for demo purposes.
-    if (email === 'manager@hotel.com' && password === 'password123') {
-        try {
-            // In a real app, you would use Firebase Auth.
-            // Since we don't have credentials, we'll simulate a successful login.
-            toast({
-                title: 'Login Successful',
-                description: 'Welcome back, Hotel Manager!',
-            });
-            // This is a mock login, we just redirect. 
-            // The AuthProvider will see no user and redirect back.
-            // To make this work for demo, we can use a trick.
-            // We'll just push to the dashboard. The AuthGuard is set to be permissive for this demo.
-            router.push('/');
-        } catch (err: any) {
-            setError(err.message);
-            setIsLoading(false);
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast({
+            title: 'Login Successful',
+            description: 'Welcome back, Hotel Manager!',
+        });
+        router.push('/');
+    } catch (err: any) {
+        let errorMessage = 'An unknown error occurred.';
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+            errorMessage = 'Invalid credentials. Please try again.';
+        } else if (err.code === 'auth/invalid-email') {
+            errorMessage = 'Please enter a valid email address.';
         }
-    } else {
-        // Simulating Firebase auth error
-        setTimeout(() => {
-            setError('Invalid credentials. Please try again.');
-            toast({
-                variant: 'destructive',
-                title: 'Login Failed',
-                description: 'Invalid credentials. Please try again.',
-            });
-            setIsLoading(false);
-        }, 1000);
+        setError(errorMessage);
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: errorMessage,
+        });
+        setIsLoading(false);
     }
   };
 
@@ -114,11 +106,6 @@ export default function LoginPage() {
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            <p className="text-muted-foreground">Demo credentials:</p>
-            <p>Email: <span className="font-medium">manager@hotel.com</span></p>
-            <p>Password: <span className="font-medium">password123</span></p>
-          </div>
         </CardContent>
       </Card>
     </div>

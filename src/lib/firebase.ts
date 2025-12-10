@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseOptions } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, User } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,13 +14,7 @@ const firebaseConfig: FirebaseOptions = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// NOTE: For this to work, you need to create a `.env.local` file in the root of your project
-// and add your Firebase configuration details there.
-// For example:
-// NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-// NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-auth-domain"
-// ...and so on.
-
-export { auth, onAuthStateChanged, signOut, signInWithEmailAndPassword };
+export { app, auth, db, onAuthStateChanged, signOut, signInWithEmailAndPassword };
 export type { User };

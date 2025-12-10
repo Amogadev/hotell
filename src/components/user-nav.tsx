@@ -23,8 +23,7 @@ export function UserNav() {
 
   const handleLogout = async () => {
     try {
-        // In a real app, this would sign out from Firebase.
-        // await signOut(auth);
+        await signOut(auth);
         toast({
             title: 'Logged Out',
             description: 'You have been successfully logged out.',
