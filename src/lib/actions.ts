@@ -3,7 +3,7 @@
 
 import { db } from './data';
 import type { Booking, DailyRevenue, Payment, PaymentMode, Room, PaymentStatus } from './types';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, isToday } from 'date-fns';
 
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
@@ -72,7 +72,10 @@ export async function createBooking(bookingData: CreateBookingData) {
 
     const room = db.rooms.find(r => r.roomNumber === bookingData.roomNumber);
     if (room) {
-        room.status = 'Booked';
+        const checkInDate = new Date(bookingData.checkInDate);
+        // The time zone offset needs to be considered for an accurate `isToday` check
+        const utcDate = new Date(checkInDate.getUTCFullYear(), checkInDate.getUTCMonth(), checkInDate.getUTCDate());
+        room.status = isToday(utcDate) ? 'Occupied' : 'Booked';
         room.guestName = bookingData.guestName;
         room.checkIn = bookingData.checkInDate;
         room.checkOut = bookingData.checkOutDate;
