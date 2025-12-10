@@ -25,6 +25,9 @@ const bookingSchema = z.object({
   numberOfPersons: z.coerce.number().min(1, 'At least one person is required'),
   paymentMode: z.enum(['UPI', 'Cash', 'GPay', 'PhonePe', 'Net Banking']),
   advancePayment: z.coerce.number().min(0, 'Advance payment cannot be negative'),
+}).refine(data => data.checkOutDate > data.checkInDate, {
+    message: "Check-out date must be after check-in date.",
+    path: ["checkOutDate"],
 });
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
@@ -48,6 +51,8 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
             advancePayment: 0,
         }
     });
+
+    const watchCheckInDate = form.watch('checkInDate');
 
     const onSubmit = async (data: BookingFormValues) => {
         setIsSubmitting(true);
@@ -125,7 +130,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                                             </FormControl>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} initialFocus />
                                         </PopoverContent>
                                     </Popover>
                                     <FormMessage />
@@ -153,7 +158,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                                             </FormControl>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date <= (watchCheckInDate || new Date(new Date().setHours(0,0,0,0)))} initialFocus />
                                         </PopoverContent>
                                     </Popover>
                                     <FormMessage />
