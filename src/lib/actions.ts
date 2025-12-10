@@ -122,3 +122,31 @@ export async function deletePayment(paymentId: string) {
     db.payments.splice(paymentIndex, 1);
     return { success: true };
 }
+
+export async function createRepayment(bookingId: string, amount: number) {
+    const booking = db.bookings.find(b => b.id === bookingId);
+    if (!booking) {
+        throw new Error('Booking not found');
+    }
+
+    const newPayment: Payment = {
+        id: `p${db.payments.length + 1}`,
+        bookingId: bookingId,
+        roomNumber: booking.roomNumber,
+        amount: amount,
+        mode: 'Cash', // Defaulting to cash for settlement
+        date: format(new Date(), 'yyyy-MM-dd'),
+    };
+    db.payments.push(newPayment);
+
+    booking.amountPaid += amount;
+    booking.amountDue = 0;
+    booking.paymentStatus = 'Completed';
+
+    const room = db.rooms.find(r => r.bookingId === bookingId);
+    if (room) {
+        room.amountDue = null;
+    }
+
+    return { success: true, payment: newPayment };
+}
