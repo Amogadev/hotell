@@ -1,20 +1,48 @@
-import { initializeApp, getApps, getApp, FirebaseOptions } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, User } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { FirebaseOptions } from 'firebase/app';
 
+// Mock Firebase implementation
 const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "mock-api-key",
+  authDomain: "mock.firebaseapp.com",
+  projectId: "mock-project-id",
+  storageBucket: "mock.appspot.com",
+  messagingSenderId: "mock-sender-id",
+  appId: "mock-app-id",
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+const mockAuth = {
+  onAuthStateChanged: (callback: (user: any) => void) => {
+    // Simulate a logged-in user for now
+    setTimeout(() => callback({ email: 'manager@hotel.com', uid: '123' }), 1000);
+    return () => {}; // Unsubscribe function
+  },
+  signInWithEmailAndPassword: async (auth: any, email: string, pass: string) => {
+    if (email === 'manager@hotel.com' && pass === 'password123') {
+        return { user: { email: 'manager@hotel.com', uid: '123' } };
+    }
+    const error = new Error('Invalid credentials');
+    (error as any).code = 'auth/invalid-credential';
+    throw error;
+  },
+  signOut: async () => {
+    // Simulate sign out
+    return Promise.resolve();
+  }
+}
+
+const app = {};
+const auth = mockAuth;
+const db = {};
+
+const onAuthStateChanged = mockAuth.onAuthStateChanged;
+const signInWithEmailAndPassword = mockAuth.signInWithEmailAndPassword;
+const signOut = mockAuth.signOut;
+
+type User = {
+    email: string | null;
+    uid: string;
+} | null;
+
 
 export { app, auth, db, onAuthStateChanged, signOut, signInWithEmailAndPassword };
 export type { User };
