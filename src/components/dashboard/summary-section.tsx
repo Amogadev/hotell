@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSummaryData } from "@/lib/actions";
 import { Bed, BedDouble, Users, CalendarCheck, ChevronDown } from "lucide-react";
@@ -36,9 +36,9 @@ export default function SummarySection() {
     const [summary, setSummary] = useState<{ totalRooms: number; availableRooms: number; occupiedRooms: number; } | null>(null);
     const [isOpen, setIsOpen] = useState(true);
     
-    useState(() => {
+    useEffect(() => {
         getSummaryData().then(setSummary);
-    });
+    }, []);
 
     return (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
