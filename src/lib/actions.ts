@@ -1,8 +1,9 @@
+
 'use server';
 
 import { db } from './data';
 import type { Booking, DailyRevenue, Payment, PaymentMode, Room } from './types';
-import { format } from 'date-fns';
+import { format, subDays, addDays } from 'date-fns';
 
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
