@@ -96,7 +96,7 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
 }
 
 
-export default function RoomsSection() {
+export default function RoomsSection({ onBookingSuccess }: { onBookingSuccess: () => void }) {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -111,9 +111,6 @@ export default function RoomsSection() {
         fetchRooms();
     }, []);
 
-    const handleBookingSuccess = () => {
-        fetchRooms();
-    }
 
     return (
         <Card>
@@ -131,7 +128,7 @@ export default function RoomsSection() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {rooms.map(room => (
-                            <RoomCard key={room.id} room={room} onBookingSuccess={handleBookingSuccess} />
+                            <RoomCard key={room.id} room={room} onBookingSuccess={onBookingSuccess} />
                         ))}
                     </div>
                 )}

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { DollarSign, Wallet, Trash2, IndianRupee } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRevenueForDate, deletePayment } from "@/lib/actions";
 import type { DailyRevenue, Payment } from "@/lib/types";
-import { DashboardContext } from "./dashboard-provider";
+import { useDashboard } from "./dashboard-provider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "../ui/button";
 import { format } from "date-fns";
@@ -57,7 +57,7 @@ function PaymentItem({ payment, onDelete }: { payment: Payment, onDelete: (payme
 
 
 export default function RevenueSection() {
-    const { date } = useContext(DashboardContext);
+    const { date, refresh, setRefresh } = useDashboard();
     const { toast } = useToast();
     const [revenueData, setRevenueData] = useState<DailyRevenue | null>(null);
     const [loading, setLoading] = useState(true);
@@ -71,7 +71,10 @@ export default function RevenueSection() {
 
     useEffect(() => {
         fetchRevenue();
-    }, [date]);
+        if (refresh) {
+            setRefresh(false);
+        }
+    }, [date, refresh]);
 
     const handleDeletePayment = async (paymentId: string) => {
         try {
