@@ -13,33 +13,7 @@ export async function getSummaryData() {
 }
 
 export async function getRooms(): Promise<Room[]> {
-  // Simulate some occupied rooms for demonstration
   const rooms = db.rooms.map(r => ({...r})); // Create a copy
-  const occupiedRoom = rooms.find(r => r.roomNumber === '101');
-  if (occupiedRoom && occupiedRoom.status === 'Available') {
-    occupiedRoom.status = 'Occupied';
-    occupiedRoom.guestName = 'Alice Johnson';
-    occupiedRoom.checkIn = format(subDays(new Date('2025-12-10T00:00:00'), 1), 'yyyy-MM-dd');
-    occupiedRoom.checkOut = format(new Date('2025-12-10T00:00:00'), 'yyyy-MM-dd');
-  }
-
-  const occupiedRoom2 = rooms.find(r => r.roomNumber === '105');
-  if (occupiedRoom2 && occupiedRoom2.status === 'Available') {
-    occupiedRoom2.status = 'Occupied';
-    occupiedRoom2.guestName = 'Charlie Brown';
-    occupiedRoom2.checkIn = format(subDays(new Date('2025-12-10T00:00:00'), 1), 'yyyy-MM-dd');
-    occupiedRoom2.checkOut = format(addDays(new Date('2025-12-10T00:00:00'), 1), 'yyyy-MM-dd');
-  }
-  
-   const bookedRoom = rooms.find(r => r.roomNumber === '102');
-    if (bookedRoom && bookedRoom.status === 'Available') {
-        bookedRoom.status = 'Booked';
-        bookedRoom.guestName = 'AD';
-        bookedRoom.checkIn = '2025-12-18';
-        bookedRoom.checkOut = '2025-12-22';
-    }
-
-
   return rooms;
 }
 
