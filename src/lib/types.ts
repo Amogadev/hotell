@@ -34,5 +34,5 @@ export interface Payment {
 export interface DailyRevenue {
   totalBookings: number;
   totalIncome: number;
-  paymentBreakdown: { mode: PaymentMode; amount: number }[];
+  payments: Payment[];
 }

@@ -1,11 +1,42 @@
 'use client';
 
 import { useState, useEffect, useContext } from "react";
-import { DollarSign, WalletCards } from "lucide-react";
+import { DollarSign, Wallet, Trash2, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRevenueForDate } from "@/lib/actions";
-import type { DailyRevenue } from "@/lib/types";
+import type { DailyRevenue, Payment } from "@/lib/types";
 import { DashboardContext } from "./dashboard-provider";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "../ui/button";
+import { format } from "date-fns";
+
+function PaymentItem({ payment }: { payment: Payment }) {
+    return (
+        <AccordionItem value={payment.id} className="border-b-0">
+            <AccordionTrigger className="p-4 hover:no-underline bg-secondary/50 rounded-lg data-[state=open]:rounded-b-none">
+                 <div className="flex items-center gap-4 w-full">
+                    <Wallet className="h-6 w-6 text-muted-foreground" />
+                    <span className="font-medium flex-1 text-left">{payment.mode}</span>
+                    <span className="text-lg font-bold">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payment.amount)}
+                    </span>
+                </div>
+            </AccordionTrigger>
+            <AccordionContent className="bg-secondary/50 p-4 rounded-b-lg text-muted-foreground">
+               <div className="flex justify-between items-center">
+                    <div>
+                        <p className="font-semibold text-foreground">N/A</p>
+                        <p>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payment.amount)} on {format(new Date(payment.date), 'MMM dd')}</p>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                        <Trash2 className="h-5 w-5 text-red-500" />
+                    </Button>
+               </div>
+            </AccordionContent>
+        </AccordionItem>
+    )
+}
+
 
 export default function RevenueSection() {
     const { date } = useContext(DashboardContext);
@@ -26,7 +57,7 @@ export default function RevenueSection() {
         <Card>
             <CardHeader>
                 <CardTitle>Daily Revenue</CardTitle>
-                <CardDescription>Revenue and payment breakdown for the selected date.</CardDescription>
+                <CardDescription>Income and payment details for the selected day.</CardDescription>
             </CardHeader>
             <CardContent>
                 {loading ? <p>Loading...</p> : revenueData ? (
@@ -37,31 +68,28 @@ export default function RevenueSection() {
                                     <DollarSign className="h-6 w-6 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">Total Income</p>
                                     <p className="text-2xl font-bold">
-                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(revenueData.totalIncome)}
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(revenueData.totalIncome)}
                                     </p>
                                 </div>
                             </div>
                             <div>
                                <div className="p-4 bg-secondary rounded-lg flex flex-col items-center">
-                                    <WalletCards className="h-6 w-6 text-muted-foreground mb-2" />
-                                    <p className="text-sm text-muted-foreground">Rooms Booked</p>
+                                    <Wallet className="h-6 w-6 text-muted-foreground mb-2" />
+                                    <p className="text-sm text-muted-foreground">Transactions</p>
                                     <p className="text-2xl font-bold">{revenueData.totalBookings}</p>
                                 </div>
                             </div>
                         </div>
                         <div>
-                             <h4 className="text-sm font-medium mb-2 text-center">Payment Breakdown</h4>
-                            {revenueData.paymentBreakdown.length > 0 ? (
-                                <ul className="space-y-2">
-                                    {revenueData.paymentBreakdown.map(item => (
-                                        <li key={item.mode} className="flex justify-between items-center text-sm bg-secondary p-2 rounded-md">
-                                            <span>{item.mode}</span>
-                                            <span className="font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(item.amount)}</span>
-                                        </li>
+                             <h4 className="text-sm font-medium mb-4 text-center text-muted-foreground">Payment Breakdown</h4>
+                            {revenueData.payments.length > 0 ? (
+                                <Accordion type="single" collapsible className="w-full space-y-2">
+                                    {revenueData.payments.map(item => (
+                                        <PaymentItem key={item.id} payment={item} />
                                     ))}
-                                </ul>
+                                </Accordion>
                             ) : (
-                                <p className="text-sm text-muted-foreground text-center">No payments recorded for this day.</p>
+                                <p className="text-sm text-muted-foreground text-center py-8">No payments recorded for this day.</p>
                             )}
                         </div>
                     </div>

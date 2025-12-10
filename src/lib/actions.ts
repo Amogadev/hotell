@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from './data';
-import type { Booking, DailyRevenue, PaymentMode, Room } from './types';
+import type { Booking, DailyRevenue, Payment, PaymentMode, Room } from './types';
 import { format } from 'date-fns';
 
 export async function getSummaryData() {
@@ -25,19 +25,9 @@ export async function getRevenueForDate(date: Date): Promise<DailyRevenue> {
   const paymentsToday = db.payments.filter(p => p.date === formattedDate);
   
   const totalIncome = paymentsToday.reduce((sum, p) => sum + p.amount, 0);
-  const totalBookings = new Set(paymentsToday.map(p => p.roomNumber)).size;
+  const totalBookings = paymentsToday.length;
 
-  const paymentBreakdown = paymentsToday.reduce((acc, p) => {
-    const existing = acc.find(item => item.mode === p.mode);
-    if (existing) {
-      existing.amount += p.amount;
-    } else {
-      acc.push({ mode: p.mode, amount: p.amount });
-    }
-    return acc;
-  }, [] as { mode: PaymentMode, amount: number }[]);
-
-  return { totalIncome, totalBookings, paymentBreakdown };
+  return { totalIncome, totalBookings, payments: paymentsToday };
 }
 
 export async function createBooking(bookingData: Omit<Booking, 'id' | 'paymentStatus' | 'date'>) {
