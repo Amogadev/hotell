@@ -9,13 +9,13 @@ const yesterdayStr = format(subDays(today, 1), 'yyyy-MM-dd');
 const paymentModes: PaymentMode[] = ['UPI', 'Cash', 'GPay', 'PhonePe', 'Net Banking'];
 
 export const mockRooms: Room[] = [
-  { id: '1', roomNumber: '101', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '2', roomNumber: '102', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '3', roomNumber: '103', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '4', roomNumber: '104', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '5', roomNumber: '105', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '6', roomNumber: '201', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '7', roomNumber: '202', status: 'Available', guestName: null, checkIn: null, checkOut: null },
+  { id: '1', roomNumber: '101', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
+  { id: '2', roomNumber: '102', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
+  { id: '3', roomNumber: '103', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
+  { id: '4', roomNumber: '104', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
+  { id: '5', roomNumber: '105', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
+  { id: '6', roomNumber: '201', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
+  { id: '7', roomNumber: '202', status: 'Available', guestName: null, checkIn: null, checkOut: null, bookingId: null, amountDue: null },
 ];
 
 export const mockBookings: Booking[] = [];
@@ -40,7 +40,7 @@ export const mockPayments: Payment[] = [
      {
         id: 'p3',
         bookingId: 'b3',
-        roomNumber: '105',
+        roomNumber: '101',
         amount: 1000,
         mode: 'GPay',
         date: yesterdayStr,
