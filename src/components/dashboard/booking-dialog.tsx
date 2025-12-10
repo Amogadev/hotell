@@ -13,12 +13,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, AlertTriangle, Sparkles } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { smartStatusPrompt, SmartStatusPromptOutput } from '@/ai/flows/smart-status-prompt';
 import type { PaymentMode } from '@/lib/types';
 import { createBooking } from '@/lib/actions';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const bookingSchema = z.object({
   customerName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -41,8 +39,6 @@ interface BookingDialogProps {
 export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBookingSuccess }: BookingDialogProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isAiReviewing, setIsAiReviewing] = useState(false);
-    const [aiFlags, setAiFlags] = useState<SmartStatusPromptOutput['flags']>([]);
 
     const form = useForm<BookingFormValues>({
         resolver: zodResolver(bookingSchema),
@@ -52,45 +48,6 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
             advancePayment: 0,
         }
     });
-
-    const handleAiReview = async () => {
-        setIsAiReviewing(true);
-        setAiFlags([]);
-        const values = form.getValues();
-        
-        const inputForAi = {
-            customerName: values.customerName || 'Not provided',
-            checkInDate: values.checkInDate ? format(values.checkInDate, 'yyyy-MM-dd') : 'Not provided',
-            checkOutDate: values.checkOutDate ? format(values.checkOutDate, 'yyyy-MM-dd') : 'Not provided',
-            numberOfPersons: values.numberOfPersons || 0,
-            paymentMode: values.paymentMode || 'Not provided'
-        }
-
-        try {
-            const result = await smartStatusPrompt(inputForAi);
-            setAiFlags(result.flags);
-            if (result.flags.length > 0) {
-                 toast({
-                    title: "AI Review Complete",
-                    description: "The AI found some potential issues with your input.",
-                });
-            } else {
-                 toast({
-                    title: "AI Review Complete",
-                    description: "Everything looks good!",
-                });
-            }
-        } catch (error) {
-            console.error("AI review failed:", error);
-            toast({
-                variant: 'destructive',
-                title: "AI Review Failed",
-                description: "Could not complete the AI review.",
-            });
-        } finally {
-            setIsAiReviewing(false);
-        }
-    }
 
     const onSubmit = async (data: BookingFormValues) => {
         setIsSubmitting(true);
@@ -123,10 +80,6 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
         }
     };
 
-    const getFlagForField = (fieldName: keyof BookingFormValues) => {
-        return aiFlags.find(flag => flag.field.toLowerCase().replace(/\s+/g, '') === fieldName.toLowerCase().replace(/\s+/g, ''));
-    }
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="sm:max-w-[425px]">
@@ -136,191 +89,135 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <TooltipProvider>
-                            <FormField
-                                control={form.control}
-                                name="customerName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex items-center justify-between">
-                                            <FormLabel>Customer Name</FormLabel>
-                                            {getFlagForField('customerName') && (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{getFlagForField('customerName')?.reason}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                        <FormControl>
-                                            <Input placeholder="John Doe" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="checkInDate"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <div className="flex items-center justify-between">
-                                            <FormLabel>Check-in Date</FormLabel>
-                                             {getFlagForField('checkInDate') && (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{getFlagForField('checkInDate')?.reason}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button
-                                                        variant={"outline"}
-                                                        className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                    >
-                                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                    </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="checkOutDate"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                       <div className="flex items-center justify-between">
-                                            <FormLabel>Check-out Date</FormLabel>
-                                            {getFlagForField('checkOutDate') && (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{getFlagForField('checkOutDate')?.reason}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button
-                                                        variant={"outline"}
-                                                        className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                    >
-                                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                    </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="numberOfPersons"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex items-center justify-between">
-                                            <FormLabel>Number of Persons</FormLabel>
-                                            {getFlagForField('numberOfPersons') && (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{getFlagForField('numberOfPersons')?.reason}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                        <FormControl>
-                                            <Input type="number" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="paymentMode"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex items-center justify-between">
-                                            <FormLabel>Payment Mode</FormLabel>
-                                            {getFlagForField('paymentMode') && (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{getFlagForField('paymentMode')?.reason}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormField
+                            control={form.control}
+                            name="customerName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Customer Name</FormLabel>
+                                    </div>
+                                    <FormControl>
+                                        <Input placeholder="John Doe" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="checkInDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Check-in Date</FormLabel>
+                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
                                             <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a payment mode" />
-                                                </SelectTrigger>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                >
+                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="UPI">UPI</SelectItem>
-                                                <SelectItem value="Cash">Cash</SelectItem>
-                                                <SelectItem value="GPay">GPay</SelectItem>
-                                                <SelectItem value="PhonePe">PhonePe</SelectItem>
-                                                <SelectItem value="Net Banking">Net Banking</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="advancePayment"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex items-center justify-between">
-                                            <FormLabel>Advance Payment</FormLabel>
-                                        </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="checkOutDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                   <div className="flex items-center justify-between">
+                                        <FormLabel>Check-out Date</FormLabel>
+                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                >
+                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="numberOfPersons"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Number of Persons</FormLabel>
+                                    </div>
+                                    <FormControl>
+                                        <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="paymentMode"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Payment Mode</FormLabel>
+                                    </div>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                            <Input type="number" placeholder="Enter advance amount" {...field} />
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a payment mode" />
+                                            </SelectTrigger>
                                         </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </TooltipProvider>
+                                        <SelectContent>
+                                            <SelectItem value="UPI">UPI</SelectItem>
+                                            <SelectItem value="Cash">Cash</SelectItem>
+                                            <SelectItem value="GPay">GPay</SelectItem>
+                                            <SelectItem value="PhonePe">PhonePe</SelectItem>
+                                            <SelectItem value="Net Banking">Net Banking</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="advancePayment"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Advance Payment</FormLabel>
+                                    </div>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Enter advance amount" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                        <DialogFooter className="sm:justify-between gap-2 pt-4">
-                            <Button type="button" variant="outline" onClick={handleAiReview} disabled={isAiReviewing}>
-                                <Sparkles className="mr-2 h-4 w-4" />
-                                {isAiReviewing ? 'Reviewing...' : 'AI Review'}
-                            </Button>
+                        <DialogFooter className="pt-4">
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? 'Booking...' : 'Confirm Booking'}
                             </Button>
