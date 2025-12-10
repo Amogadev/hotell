@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
   const occupiedRooms = db.rooms.filter(room => room.status === 'Occupied').length;
-  const availableRooms = totalRooms - occupiedRooms;
+  const availableRooms = db.rooms.filter(room => room.status === 'Available').length;
   return { totalRooms, occupiedRooms, availableRooms };
 }
 
