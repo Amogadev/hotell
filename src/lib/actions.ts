@@ -63,3 +63,12 @@ export async function createBooking(bookingData: Omit<Booking, 'id' | 'paymentSt
 
     return { success: true, booking: newBooking };
 }
+
+export async function deletePayment(paymentId: string) {
+    const paymentIndex = db.payments.findIndex(p => p.id === paymentId);
+    if (paymentIndex === -1) {
+        throw new Error('Payment not found');
+    }
+    db.payments.splice(paymentIndex, 1);
+    return { success: true };
+}

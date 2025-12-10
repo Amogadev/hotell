@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useEffect, useContext } from "react";
-import { DollarSign, Wallet, Trash2, ChevronDown } from "lucide-react";
+import { DollarSign, Wallet, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getRevenueForDate } from "@/lib/actions";
+import { getRevenueForDate, deletePayment } from "@/lib/actions";
 import type { DailyRevenue, Payment } from "@/lib/types";
 import { DashboardContext } from "./dashboard-provider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "../ui/button";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 
-function PaymentItem({ payment }: { payment: Payment }) {
+function PaymentItem({ payment, onDelete }: { payment: Payment, onDelete: (paymentId: string) => void }) {
     return (
         <AccordionItem value={payment.id} className="border-b-0">
             <AccordionTrigger className="p-4 hover:no-underline bg-secondary/50 rounded-lg data-[state=open]:rounded-b-none">
@@ -25,12 +27,28 @@ function PaymentItem({ payment }: { payment: Payment }) {
             <AccordionContent className="bg-secondary/50 p-4 rounded-b-lg text-muted-foreground">
                <div className="flex justify-between items-center">
                     <div>
-                        <p className="font-semibold text-foreground">N/A</p>
+                        <p className="font-semibold text-foreground">Room {payment.roomNumber}</p>
                         <p>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payment.amount)} on {format(new Date(payment.date), 'MMM dd')}</p>
                     </div>
-                    <Button variant="ghost" size="icon">
-                        <Trash2 className="h-5 w-5 text-red-500" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Trash2 className="h-5 w-5 text-red-500" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the payment record.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(payment.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                </div>
             </AccordionContent>
         </AccordionItem>
@@ -40,18 +58,37 @@ function PaymentItem({ payment }: { payment: Payment }) {
 
 export default function RevenueSection() {
     const { date } = useContext(DashboardContext);
+    const { toast } = useToast();
     const [revenueData, setRevenueData] = useState<DailyRevenue | null>(null);
     const [loading, setLoading] = useState(true);
     
+    const fetchRevenue = async () => {
+        setLoading(true);
+        const data = await getRevenueForDate(date);
+        setRevenueData(data);
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchRevenue = async () => {
-            setLoading(true);
-            const data = await getRevenueForDate(date);
-            setRevenueData(data);
-            setLoading(false);
-        };
         fetchRevenue();
     }, [date]);
+
+    const handleDeletePayment = async (paymentId: string) => {
+        try {
+            await deletePayment(paymentId);
+            toast({
+                title: "Payment Deleted",
+                description: "The payment record has been successfully removed.",
+            });
+            fetchRevenue(); // Refresh the data
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Deletion Failed",
+                description: "Could not delete the payment. Please try again.",
+            });
+        }
+    }
 
     return (
         <Card>
@@ -85,7 +122,7 @@ export default function RevenueSection() {
                             {revenueData.payments.length > 0 ? (
                                 <Accordion type="single" collapsible className="w-full space-y-2">
                                     {revenueData.payments.map(item => (
-                                        <PaymentItem key={item.id} payment={item} />
+                                        <PaymentItem key={item.id} payment={item} onDelete={handleDeletePayment} />
                                     ))}
                                 </Accordion>
                             ) : (
