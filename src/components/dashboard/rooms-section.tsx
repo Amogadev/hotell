@@ -9,9 +9,11 @@ import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import { Building, User, Calendar, CalendarCheck, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
+import BookingDetailsDialog from './booking-details-dialog';
 
 function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: () => void }) {
     const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const isAvailable = room.status === 'Available';
     const isOccupied = room.status === 'Occupied';
     const isBooked = room.status === 'Booked';
@@ -33,6 +35,14 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
                 );
             default:
                 return <Badge className="capitalize">{room.status}</Badge>;
+        }
+    }
+
+    const handleButtonClick = () => {
+        if (isAvailable) {
+            setIsBookingOpen(true);
+        } else {
+            setIsDetailsOpen(true);
         }
     }
 
@@ -74,21 +84,26 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
                 </CardContent>
                 <div className="p-4 pt-0">
                     <Button 
-                        className="w-full" 
-                        disabled={!isAvailable}
-                        onClick={() => setIsBookingOpen(true)}
+                        className="w-full"
+                        onClick={handleButtonClick}
                         variant="default"
                     >
-                        {isAvailable ? 'Book Now' : (isBooked ? 'Update Booking' : 'Manage')}
+                        {isAvailable ? 'Book Now' : 'Details'}
                     </Button>
                 </div>
             </Card>
-            {isAvailable && (
+            {isAvailable ? (
                 <BookingDialog 
                     isOpen={isBookingOpen}
                     setIsOpen={setIsBookingOpen}
                     roomNumber={room.roomNumber}
                     onBookingSuccess={onBookingSuccess}
+                />
+            ) : (
+                <BookingDetailsDialog
+                    isOpen={isDetailsOpen}
+                    setIsOpen={setIsDetailsOpen}
+                    room={room}
                 />
             )}
         </>
