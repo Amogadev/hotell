@@ -86,7 +86,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen} modal={false}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Book Room {roomNumber}</DialogTitle>
