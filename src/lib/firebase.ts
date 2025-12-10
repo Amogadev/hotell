@@ -11,9 +11,11 @@ const firebaseConfig: FirebaseOptions = {
 };
 
 const mockAuth = {
-  onAuthStateChanged: (callback: (user: any) => void) => {
-    // Simulate a logged-in user for now
-    setTimeout(() => callback({ email: 'manager@hotel.com', uid: '123' }), 1000);
+  onAuthStateChanged: (auth: any, callback: (user: any) => void) => {
+    if (typeof callback === 'function') {
+      // Simulate a logged-in user for now
+      setTimeout(() => callback({ email: 'manager@hotel.com', uid: '123' }), 1000);
+    }
     return () => {}; // Unsubscribe function
   },
   signInWithEmailAndPassword: async (auth: any, email: string, pass: string) => {
