@@ -1,6 +1,10 @@
 import { FirebaseOptions } from 'firebase/app';
 
 // Mock Firebase implementation
+
+let mockUser: User = { email: 'manager@hotel.com', uid: '123' };
+let authStateListener: ((user: User) => void) | null = null;
+
 const firebaseConfig: FirebaseOptions = {
   apiKey: "mock-api-key",
   authDomain: "mock.firebaseapp.com",
@@ -11,23 +15,37 @@ const firebaseConfig: FirebaseOptions = {
 };
 
 const mockAuth = {
-  onAuthStateChanged: (auth: any, callback: (user: any) => void) => {
+  onAuthStateChanged: (auth: any, callback: (user: User) => void) => {
     if (typeof callback === 'function') {
-      // Simulate a logged-in user for now
-      setTimeout(() => callback({ email: 'manager@hotel.com', uid: '123' }), 1000);
+      authStateListener = callback;
+      // Simulate async user fetch
+      setTimeout(() => {
+        if (authStateListener) {
+            authStateListener(mockUser);
+        }
+      }, 1000);
     }
-    return () => {}; // Unsubscribe function
+    return () => {
+        authStateListener = null; // Unsubscribe
+    };
   },
   signInWithEmailAndPassword: async (auth: any, email: string, pass: string) => {
     if (email === 'manager@hotel.com' && pass === 'password123') {
-        return { user: { email: 'manager@hotel.com', uid: '123' } };
+        mockUser = { email: 'manager@hotel.com', uid: '123' };
+        if (authStateListener) {
+            authStateListener(mockUser);
+        }
+        return { user: mockUser };
     }
     const error = new Error('Invalid credentials');
     (error as any).code = 'auth/invalid-credential';
     throw error;
   },
   signOut: async () => {
-    // Simulate sign out
+    mockUser = null;
+    if (authStateListener) {
+        authStateListener(mockUser);
+    }
     return Promise.resolve();
   }
 }

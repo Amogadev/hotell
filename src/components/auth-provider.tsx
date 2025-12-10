@@ -2,7 +2,6 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, User, auth } from '@/lib/firebase';
-import { usePathname, useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
