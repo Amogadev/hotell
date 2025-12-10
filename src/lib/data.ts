@@ -20,7 +20,32 @@ export const mockRooms: Room[] = [
 
 export const mockBookings: Booking[] = [];
 
-export const mockPayments: Payment[] = [];
+export const mockPayments: Payment[] = [
+    {
+        id: 'p1',
+        bookingId: 'b1',
+        roomNumber: '101',
+        amount: 500,
+        mode: 'UPI',
+        date: todayStr,
+    },
+    {
+        id: 'p2',
+        bookingId: 'b2',
+        roomNumber: '102',
+        amount: 800,
+        mode: 'Cash',
+        date: todayStr,
+    },
+     {
+        id: 'p3',
+        bookingId: 'b3',
+        roomNumber: '105',
+        amount: 1000,
+        mode: 'GPay',
+        date: yesterdayStr,
+    },
+];
 
 // In a real app, these would be Firestore transactions
 export const db = {
