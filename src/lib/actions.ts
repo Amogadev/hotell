@@ -8,8 +8,9 @@ import { format, differenceInDays } from 'date-fns';
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
   const occupiedRooms = db.rooms.filter(room => room.status === 'Occupied').length;
-  const availableRooms = db.rooms.filter(room => room.status === 'Available' || room.status === 'Booked').length;
-  return { totalRooms, occupiedRooms, availableRooms };
+  const availableRooms = db.rooms.filter(room => room.status === 'Available').length;
+  const bookedRooms = db.rooms.filter(room => room.status === 'Booked').length;
+  return { totalRooms, occupiedRooms, availableRooms, bookedRooms };
 }
 
 export async function getRooms(): Promise<Room[]> {

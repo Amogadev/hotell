@@ -65,11 +65,7 @@ export default function SummarySection() {
             getSummaryData(),
             getRooms()
         ]);
-        const bookedRoomsCount = roomsData.filter(room => room.status === 'Booked').length;
-        setSummary({
-            ...summaryData,
-            bookedRooms: bookedRoomsCount,
-        });
+        setSummary(summaryData);
         setRooms(roomsData);
         setLoading(false);
     }, []);
