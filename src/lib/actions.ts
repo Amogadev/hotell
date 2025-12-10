@@ -3,7 +3,7 @@
 
 import { db } from './data';
 import type { Booking, DailyRevenue, Payment, PaymentMode, Room, PaymentStatus } from './types';
-import { format, subDays, addDays, differenceInDays } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
@@ -46,7 +46,7 @@ export async function createBooking(bookingData: CreateBookingData) {
     console.log('Creating booking:', bookingData);
     
     const nights = differenceInDays(new Date(bookingData.checkOutDate), new Date(bookingData.checkInDate));
-    const totalAmount = (2000 + Math.floor(Math.random() * 1500)) * Math.max(1, nights);
+    const totalAmount = 800 * Math.max(1, nights);
     const amountPaid = bookingData.advancePayment;
     const amountDue = totalAmount - amountPaid;
     const paymentStatus: PaymentStatus = amountDue <= 0 ? 'Completed' : 'Partially Paid';
