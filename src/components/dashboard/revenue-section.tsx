@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from "react";
-import { DollarSign, Wallet, Trash2 } from "lucide-react";
+import { DollarSign, Wallet, Trash2, IndianRupee } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRevenueForDate, deletePayment } from "@/lib/actions";
 import type { DailyRevenue, Payment } from "@/lib/types";
@@ -20,7 +20,7 @@ function PaymentItem({ payment, onDelete }: { payment: Payment, onDelete: (payme
                     <Wallet className="h-6 w-6 text-muted-foreground" />
                     <span className="font-medium flex-1 text-left">{payment.mode}</span>
                     <span className="text-lg font-bold">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payment.amount)}
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(payment.amount)}
                     </span>
                 </div>
             </AccordionTrigger>
@@ -28,7 +28,7 @@ function PaymentItem({ payment, onDelete }: { payment: Payment, onDelete: (payme
                <div className="flex justify-between items-center">
                     <div>
                         <p className="font-semibold text-foreground">Room {payment.roomNumber}</p>
-                        <p>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payment.amount)} on {format(new Date(payment.date), 'MMM dd')}</p>
+                        <p>Paid on {format(new Date(payment.date), 'MMM dd')}</p>
                     </div>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -40,7 +40,7 @@ function PaymentItem({ payment, onDelete }: { payment: Payment, onDelete: (payme
                         <AlertDialogHeader>
                           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the payment record.
+                            This action cannot be undone. This will permanently delete the payment and associated booking record.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -102,10 +102,10 @@ export default function RevenueSection() {
                         <div className="grid grid-cols-2 gap-4 text-center">
                             <div>
                                 <div className="p-4 bg-secondary rounded-lg flex flex-col items-center">
-                                    <DollarSign className="h-6 w-6 text-muted-foreground mb-2" />
+                                    <IndianRupee className="h-6 w-6 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">Total Income</p>
                                     <p className="text-2xl font-bold">
-                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(revenueData.totalIncome)}
+                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(revenueData.totalIncome)}
                                     </p>
                                 </div>
                             </div>

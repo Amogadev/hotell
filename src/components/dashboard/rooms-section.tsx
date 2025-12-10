@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import BookingDialog from "./booking-dialog";
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { Building, User, Calendar, CalendarCheck } from 'lucide-react';
+import { Building, User, Calendar, CalendarCheck, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
 
 function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: () => void }) {
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const isAvailable = room.status === 'Available';
+    const isOccupied = room.status === 'Occupied';
     const isBooked = room.status === 'Booked';
 
     const getStatusBadge = () => {
@@ -24,7 +25,6 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
             case 'Booked':
                 return (
                     <div className="flex flex-col gap-2">
-                        <Badge variant="default" className="capitalize w-fit"><Building className="mr-1 h-3 w-3" />Available</Badge>
                         <Badge variant="outline" className="capitalize w-fit bg-orange-600/20 text-orange-400 border-orange-500/50 hover:bg-orange-600/30">
                             <CalendarCheck className="mr-1 h-3 w-3" />
                             Booked
@@ -35,7 +35,6 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
                 return <Badge className="capitalize">{room.status}</Badge>;
         }
     }
-
 
     return (
         <>
@@ -62,8 +61,14 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
                              </div>
                              <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4" />
-                                <span>{`Next: ${format(new Date(room.checkIn!), 'MMM dd')} - ${format(new Date(room.checkOut!), 'MMM dd')}`}</span>
+                                <span>{`${format(new Date(room.checkIn!), 'MMM dd')} - ${format(new Date(room.checkOut!), 'MMM dd')}`}</span>
                             </div>
+                            {isBooked && room.amountDue && (
+                                <div className="flex items-center gap-2 text-amber-500">
+                                    <IndianRupee className="h-4 w-4" />
+                                    <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(room.amountDue)} due</span>
+                                </div>
+                            )}
                         </div>
                     )}
                 </CardContent>
@@ -74,7 +79,7 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
                         onClick={() => setIsBookingOpen(true)}
                         variant="default"
                     >
-                        Book Now
+                        {isAvailable ? 'Book Now' : (isBooked ? 'Update Booking' : 'Manage')}
                     </Button>
                 </div>
             </Card>

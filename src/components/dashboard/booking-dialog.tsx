@@ -26,6 +26,7 @@ const bookingSchema = z.object({
   checkOutDate: z.date({ required_error: 'Check-out date is required.' }),
   numberOfPersons: z.coerce.number().min(1, 'At least one person is required'),
   paymentMode: z.enum(['UPI', 'Cash', 'GPay', 'PhonePe', 'Net Banking']),
+  advancePayment: z.coerce.number().min(0, 'Advance payment cannot be negative'),
 });
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
@@ -48,6 +49,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
         defaultValues: {
             customerName: '',
             numberOfPersons: 1,
+            advancePayment: 0,
         }
     });
 
@@ -100,6 +102,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                 checkOutDate: format(data.checkOutDate, 'yyyy-MM-dd'),
                 numberOfPersons: data.numberOfPersons,
                 paymentMode: data.paymentMode as PaymentMode,
+                advancePayment: data.advancePayment
             });
             toast({
                 title: 'Booking Successful!',
@@ -109,6 +112,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
             setIsOpen(false);
             form.reset();
         } catch (error) {
+            console.error(error);
             toast({
                 variant: 'destructive',
                 title: 'Booking Failed',
@@ -291,6 +295,21 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                                                 <SelectItem value="Net Banking">Net Banking</SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="advancePayment"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>Advance Payment</FormLabel>
+                                        </div>
+                                        <FormControl>
+                                            <Input type="number" placeholder="Enter advance amount" {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}

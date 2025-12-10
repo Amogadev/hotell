@@ -2,8 +2,8 @@
 'use server';
 
 import { db } from './data';
-import type { Booking, DailyRevenue, Payment, PaymentMode, Room } from './types';
-import { format, subDays, addDays } from 'date-fns';
+import type { Booking, DailyRevenue, Payment, PaymentMode, Room, PaymentStatus } from './types';
+import { format, subDays, addDays, differenceInDays } from 'date-fns';
 
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
@@ -32,32 +32,58 @@ export async function getRevenueForDate(date: Date): Promise<DailyRevenue> {
   return { totalIncome, totalBookings, payments: paymentsToday };
 }
 
-export async function createBooking(bookingData: Omit<Booking, 'id' | 'paymentStatus' | 'date'>) {
+interface CreateBookingData {
+    roomNumber: string;
+    guestName: string;
+    checkInDate: string;
+    checkOutDate: string;
+    numberOfPersons: number;
+    paymentMode: PaymentMode;
+    advancePayment: number;
+}
+
+export async function createBooking(bookingData: CreateBookingData) {
     console.log('Creating booking:', bookingData);
     
-    // Simulate DB write
+    const nights = differenceInDays(new Date(bookingData.checkOutDate), new Date(bookingData.checkInDate));
+    const totalAmount = (2000 + Math.floor(Math.random() * 1500)) * Math.max(1, nights);
+    const amountPaid = bookingData.advancePayment;
+    const amountDue = totalAmount - amountPaid;
+    const paymentStatus: PaymentStatus = amountDue <= 0 ? 'Completed' : 'Partially Paid';
+
+    const bookingId = `b${db.bookings.length + 1}`;
+
     const newBooking: Booking = {
-        ...bookingData,
-        id: `b${db.bookings.length + 1}`,
-        paymentStatus: 'Completed', // Assume payment is done on booking
-        date: bookingData.checkInDate, // This is simplified
+        id: bookingId,
+        roomNumber: bookingData.roomNumber,
+        guestName: bookingData.guestName,
+        checkInDate: bookingData.checkInDate,
+        checkOutDate: bookingData.checkOutDate,
+        numberOfPersons: bookingData.numberOfPersons,
+        paymentMode: bookingData.paymentMode,
+        paymentStatus,
+        date: bookingData.checkInDate,
+        totalAmount,
+        amountPaid,
+        amountDue,
     };
     db.bookings.push(newBooking);
 
-    // Simulate updating room status
     const room = db.rooms.find(r => r.roomNumber === bookingData.roomNumber);
     if (room) {
-        room.status = 'Occupied';
+        room.status = 'Booked';
         room.guestName = bookingData.guestName;
         room.checkIn = bookingData.checkInDate;
         room.checkOut = bookingData.checkOutDate;
+        room.bookingId = bookingId;
+        room.amountDue = amountDue > 0 ? amountDue : null;
     }
 
-    // Simulate payment record
-    const newPayment = {
+    const newPayment: Payment = {
         id: `p${db.payments.length + 1}`,
+        bookingId: bookingId,
         roomNumber: bookingData.roomNumber,
-        amount: 2000 + Math.floor(Math.random() * 1500), // Simulate a price
+        amount: bookingData.advancePayment,
         mode: bookingData.paymentMode,
         date: format(new Date(), 'yyyy-MM-dd'),
     };
@@ -65,6 +91,7 @@ export async function createBooking(bookingData: Omit<Booking, 'id' | 'paymentSt
 
     return { success: true, booking: newBooking };
 }
+
 
 export async function deletePayment(paymentId: string) {
     const paymentIndex = db.payments.findIndex(p => p.id === paymentId);
@@ -80,6 +107,13 @@ export async function deletePayment(paymentId: string) {
             room.guestName = null;
             room.checkIn = null;
             room.checkOut = null;
+            room.bookingId = null;
+            room.amountDue = null;
+        }
+
+        const bookingIndex = db.bookings.findIndex(b => b.id === payment.bookingId);
+        if (bookingIndex > -1) {
+            db.bookings.splice(bookingIndex, 1);
         }
     }
 
