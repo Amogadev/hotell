@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import BookingDialog from "./booking-dialog";
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { Bed, Users, CalendarDays, LogOut } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Building, User, Calendar } from 'lucide-react';
 
 function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: () => void }) {
     const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -16,53 +15,42 @@ function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: ()
 
     return (
         <>
-            <Card className={cn(
-                "flex flex-col transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1",
-                isAvailable ? "bg-green-50" : "bg-amber-50",
-                "dark:bg-card"
-            )}>
+            <Card className="flex flex-col justify-between bg-secondary">
                 <CardHeader>
-                    <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-3">
-                            {isAvailable ? (
-                                <Bed className="h-6 w-6 text-green-600" />
-                            ) : (
-                                <Users className="h-6 w-6 text-amber-600" />
-                            )}
-                            <CardTitle className="text-xl">Room {room.roomNumber}</CardTitle>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <CardTitle className="text-lg">Room {room.roomNumber}</CardTitle>
+                             <Badge variant={isAvailable ? 'default' : 'destructive'} className="capitalize mt-1 w-fit">{room.status}</Badge>
                         </div>
-                        <Badge variant={isAvailable ? 'secondary' : 'destructive'} className="capitalize">
-                            {room.status}
-                        </Badge>
+                        <Building className="h-8 w-8 text-muted-foreground" />
                     </div>
                 </CardHeader>
-                <CardContent className="flex-grow space-y-3">
+                <CardContent className="flex-grow flex flex-col justify-center items-center text-center space-y-2">
                     {isAvailable ? (
-                        <div className="flex items-center justify-center text-center h-full">
-                            <p className="text-sm text-muted-foreground">Ready for the next guest.</p>
-                        </div>
+                        <>
+                            <p className="text-sm text-muted-foreground">Ready for booking</p>
+                        </>
                     ) : (
-                        <div className="text-sm text-muted-foreground space-y-2">
-                             <div className="font-medium text-foreground text-base truncate">{room.guestName}</div>
+                        <div className="text-sm text-muted-foreground space-y-1 text-left">
                              <div className="flex items-center gap-2">
-                                <CalendarDays className="h-4 w-4" />
-                                <span>{room.checkIn}</span>
+                                <User className="h-4 w-4" />
+                                <span className="font-medium text-foreground">{room.guestName}</span>
                              </div>
                              <div className="flex items-center gap-2">
-                                <LogOut className="h-4 w-4" />
-                                <span>{room.checkOut}</span>
+                                <Calendar className="h-4 w-4" />
+                                <span>{`Next: ${room.checkIn?.split('-')[2]} - ${room.checkOut?.split('-')[2]}`}</span>
                             </div>
                         </div>
                     )}
                 </CardContent>
-                <div className="p-6 pt-0">
+                <div className="p-4 pt-0">
                     <Button 
                         className="w-full" 
                         disabled={!isAvailable}
                         onClick={() => setIsBookingOpen(true)}
-                        variant={isAvailable ? 'default' : 'outline'}
+                        variant="default"
                     >
-                        {isAvailable ? 'Book Now' : 'View Booking'}
+                        Book Now
                     </Button>
                 </div>
             </Card>
@@ -102,17 +90,17 @@ export default function RoomsSection() {
         <Card>
             <CardHeader>
                 <CardTitle>Room Status</CardTitle>
-                <CardDescription>Manage and view status for all hotel rooms.</CardDescription>
+                <CardDescription>View and manage room bookings for the selected date.</CardDescription>
             </CardHeader>
             <CardContent>
                 {loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Array.from({ length: 7 }).map((_, i) => (
-                            <Skeleton key={i} className="h-[240px] rounded-lg" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <Skeleton key={i} className="h-[200px] rounded-lg" />
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {rooms.map(room => (
                             <RoomCard key={room.id} room={room} onBookingSuccess={handleBookingSuccess} />
                         ))}
