@@ -9,23 +9,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { PaymentMode } from '@/lib/types';
 import { createBooking } from '@/lib/actions';
 
 const bookingSchema = z.object({
   customerName: z.string().min(2, 'Name must be at least 2 characters'),
-  checkInDate: z.date({ required_error: 'Check-in date is required.' }),
-  checkOutDate: z.date({ required_error: 'Check-out date is required.' }),
+  checkInDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format.'),
+  checkOutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format.'),
   numberOfPersons: z.coerce.number().min(1, 'At least one person is required'),
   paymentMode: z.enum(['UPI', 'Cash', 'GPay', 'PhonePe', 'Net Banking']),
   advancePayment: z.coerce.number().min(0, 'Advance payment cannot be negative'),
-}).refine(data => data.checkOutDate > data.checkInDate, {
+}).refine(data => new Date(data.checkOutDate) > new Date(data.checkInDate), {
     message: "Check-out date must be after check-in date.",
     path: ["checkOutDate"],
 });
@@ -47,12 +43,12 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
         resolver: zodResolver(bookingSchema),
         defaultValues: {
             customerName: '',
+            checkInDate: format(new Date(), 'yyyy-MM-dd'),
+            checkOutDate: format(new Date(new Date().setDate(new Date().getDate() + 1)), 'yyyy-MM-dd'),
             numberOfPersons: 1,
             advancePayment: 0,
         }
     });
-
-    const watchCheckInDate = form.watch('checkInDate');
 
     const onSubmit = async (data: BookingFormValues) => {
         setIsSubmitting(true);
@@ -60,8 +56,8 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
             await createBooking({
                 roomNumber,
                 guestName: data.customerName,
-                checkInDate: format(data.checkInDate, 'yyyy-MM-dd'),
-                checkOutDate: format(data.checkOutDate, 'yyyy-MM-dd'),
+                checkInDate: data.checkInDate,
+                checkOutDate: data.checkOutDate,
                 numberOfPersons: data.numberOfPersons,
                 paymentMode: data.paymentMode as PaymentMode,
                 advancePayment: data.advancePayment
@@ -99,9 +95,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                             name="customerName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className="flex items-center justify-between">
-                                        <FormLabel>Customer Name</FormLabel>
-                                    </div>
+                                    <FormLabel>Customer Name</FormLabel>
                                     <FormControl>
                                         <Input placeholder="John Doe" {...field} />
                                     </FormControl>
@@ -113,26 +107,11 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                             control={form.control}
                             name="checkInDate"
                             render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <div className="flex items-center justify-between">
-                                        <FormLabel>Check-in Date</FormLabel>
-                                    </div>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                >
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} initialFocus />
-                                        </PopoverContent>
-                                    </Popover>
+                                <FormItem>
+                                    <FormLabel>Check-in Date</FormLabel>
+                                    <FormControl>
+                                        <Input type="text" placeholder="YYYY-MM-DD" {...field} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -141,26 +120,11 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                             control={form.control}
                             name="checkOutDate"
                             render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                   <div className="flex items-center justify-between">
-                                        <FormLabel>Check-out Date</FormLabel>
-                                    </div>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                >
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date <= (watchCheckInDate || new Date(new Date().setHours(0,0,0,0)))} initialFocus />
-                                        </PopoverContent>
-                                    </Popover>
+                               <FormItem>
+                                    <FormLabel>Check-out Date</FormLabel>
+                                    <FormControl>
+                                        <Input type="text" placeholder="YYYY-MM-DD" {...field} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -170,9 +134,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                             name="numberOfPersons"
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className="flex items-center justify-between">
-                                        <FormLabel>Number of Persons</FormLabel>
-                                    </div>
+                                    <FormLabel>Number of Persons</FormLabel>
                                     <FormControl>
                                         <Input type="number" {...field} />
                                     </FormControl>
@@ -185,9 +147,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                             name="paymentMode"
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className="flex items-center justify-between">
-                                        <FormLabel>Payment Mode</FormLabel>
-                                    </div>
+                                    <FormLabel>Payment Mode</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -211,9 +171,7 @@ export default function BookingDialog({ isOpen, setIsOpen, roomNumber, onBooking
                             name="advancePayment"
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className="flex items-center justify-between">
-                                        <FormLabel>Advance Payment</FormLabel>
-                                    </div>
+                                    <FormLabel>Advance Payment</FormLabel>
                                     <FormControl>
                                         <Input type="number" placeholder="Enter advance amount" {...field} />
                                     </FormControl>

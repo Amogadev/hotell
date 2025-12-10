@@ -87,7 +87,9 @@ export async function createBooking(bookingData: CreateBookingData) {
         mode: bookingData.paymentMode,
         date: format(new Date(), 'yyyy-MM-dd'),
     };
-    db.payments.push(newPayment);
+    if (newPayment.amount > 0) {
+      db.payments.push(newPayment);
+    }
 
     return { success: true, booking: newBooking };
 }
