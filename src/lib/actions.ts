@@ -7,12 +7,39 @@ import { format } from 'date-fns';
 export async function getSummaryData() {
   const totalRooms = db.rooms.length;
   const occupiedRooms = db.rooms.filter(room => room.status === 'Occupied').length;
-  const availableRooms = db.rooms.filter(room => room.status === 'Available').length;
+  const availableRooms = db.rooms.filter(room => room.status === 'Available' || room.status === 'Booked').length;
   return { totalRooms, occupiedRooms, availableRooms };
 }
 
 export async function getRooms(): Promise<Room[]> {
-  return db.rooms;
+  // Simulate some occupied rooms for demonstration
+  const rooms = db.rooms.map(r => ({...r})); // Create a copy
+  const occupiedRoom = rooms.find(r => r.roomNumber === '101');
+  if (occupiedRoom && occupiedRoom.status === 'Available') {
+    occupiedRoom.status = 'Occupied';
+    occupiedRoom.guestName = 'Alice Johnson';
+    occupiedRoom.checkIn = format(subDays(new Date('2025-12-10T00:00:00'), 1), 'yyyy-MM-dd');
+    occupiedRoom.checkOut = format(new Date('2025-12-10T00:00:00'), 'yyyy-MM-dd');
+  }
+
+  const occupiedRoom2 = rooms.find(r => r.roomNumber === '105');
+  if (occupiedRoom2 && occupiedRoom2.status === 'Available') {
+    occupiedRoom2.status = 'Occupied';
+    occupiedRoom2.guestName = 'Charlie Brown';
+    occupiedRoom2.checkIn = format(subDays(new Date('2025-12-10T00:00:00'), 1), 'yyyy-MM-dd');
+    occupiedRoom2.checkOut = format(addDays(new Date('2025-12-10T00:00:00'), 1), 'yyyy-MM-dd');
+  }
+  
+   const bookedRoom = rooms.find(r => r.roomNumber === '102');
+    if (bookedRoom && bookedRoom.status === 'Available') {
+        bookedRoom.status = 'Booked';
+        bookedRoom.guestName = 'AD';
+        bookedRoom.checkIn = '2025-12-18';
+        bookedRoom.checkOut = '2025-12-22';
+    }
+
+
+  return rooms;
 }
 
 export async function getBookingsForDate(date: string): Promise<Booking[]> {
@@ -69,6 +96,18 @@ export async function deletePayment(paymentId: string) {
     if (paymentIndex === -1) {
         throw new Error('Payment not found');
     }
+
+    const payment = db.payments[paymentIndex];
+    if (payment) {
+        const room = db.rooms.find(r => r.roomNumber === payment.roomNumber);
+        if (room) {
+            room.status = 'Available';
+            room.guestName = null;
+            room.checkIn = null;
+            room.checkOut = null;
+        }
+    }
+
     db.payments.splice(paymentIndex, 1);
     return { success: true };
 }
