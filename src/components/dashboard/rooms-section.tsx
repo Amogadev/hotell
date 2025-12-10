@@ -106,13 +106,13 @@ export default function RoomsSection() {
             </CardHeader>
             <CardContent>
                 {loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {Array.from({ length: 7 }).map((_, i) => (
                             <Skeleton key={i} className="h-[240px] rounded-lg" />
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {rooms.map(room => (
                             <RoomCard key={room.id} room={room} onBookingSuccess={handleBookingSuccess} />
                         ))}
