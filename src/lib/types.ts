@@ -1,4 +1,4 @@
-export type RoomStatus = 'Available' | 'Occupied';
+export type RoomStatus = 'Available' | 'Occupied' | 'Booked';
 
 export interface Room {
   id: string;

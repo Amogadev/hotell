@@ -7,38 +7,62 @@ import { Button } from "@/components/ui/button";
 import BookingDialog from "./booking-dialog";
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { Building, User, Calendar } from 'lucide-react';
+import { Building, User, Calendar, CalendarCheck } from 'lucide-react';
+import { format } from 'date-fns';
 
 function RoomCard({ room, onBookingSuccess }: { room: Room, onBookingSuccess: () => void }) {
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const isAvailable = room.status === 'Available';
+    const isBooked = room.status === 'Booked';
+
+    const getStatusBadge = () => {
+        switch (room.status) {
+            case 'Available':
+                return <Badge variant="default" className="capitalize w-fit"><Building className="mr-1 h-3 w-3" />Available</Badge>;
+            case 'Occupied':
+                 return <Badge variant="destructive" className="capitalize w-fit">Occupied</Badge>;
+            case 'Booked':
+                return (
+                    <div className="flex flex-col gap-2">
+                        <Badge variant="default" className="capitalize w-fit"><Building className="mr-1 h-3 w-3" />Available</Badge>
+                        <Badge variant="outline" className="capitalize w-fit bg-orange-600/20 text-orange-400 border-orange-500/50 hover:bg-orange-600/30">
+                            <CalendarCheck className="mr-1 h-3 w-3" />
+                            Booked
+                        </Badge>
+                    </div>
+                );
+            default:
+                return <Badge className="capitalize">{room.status}</Badge>;
+        }
+    }
+
 
     return (
         <>
             <Card className="flex flex-col justify-between bg-secondary">
                 <CardHeader>
                     <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-lg">Room {room.roomNumber}</CardTitle>
-                             <Badge variant={isAvailable ? 'default' : 'destructive'} className="capitalize mt-1 w-fit">{room.status}</Badge>
+                        <CardTitle className="text-lg">Room {room.roomNumber}</CardTitle>
+                        <div className="flex flex-col items-end">
+                            {getStatusBadge()}
                         </div>
-                        <Building className="h-8 w-8 text-muted-foreground" />
                     </div>
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col justify-center items-center text-center space-y-2">
                     {isAvailable ? (
                         <>
+                            <Building className="h-10 w-10 text-muted-foreground" />
                             <p className="text-sm text-muted-foreground">Ready for booking</p>
                         </>
                     ) : (
-                        <div className="text-sm text-muted-foreground space-y-1 text-left">
+                        <div className="text-sm text-muted-foreground space-y-2 text-left w-full">
                              <div className="flex items-center gap-2">
                                 <User className="h-4 w-4" />
                                 <span className="font-medium text-foreground">{room.guestName}</span>
                              </div>
                              <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4" />
-                                <span>{`Next: ${room.checkIn?.split('-')[2]} - ${room.checkOut?.split('-')[2]}`}</span>
+                                <span>{`Next: ${format(new Date(room.checkIn!), 'MMM dd')} - ${format(new Date(room.checkOut!), 'MMM dd')}`}</span>
                             </div>
                         </div>
                     )}
@@ -96,7 +120,7 @@ export default function RoomsSection() {
                 {loading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <Skeleton key={i} className="h-[200px] rounded-lg" />
+                            <Skeleton key={i} className="h-[230px] rounded-lg" />
                         ))}
                     </div>
                 ) : (
