@@ -9,11 +9,11 @@ const yesterdayStr = format(subDays(today, 1), 'yyyy-MM-dd');
 const paymentModes: PaymentMode[] = ['UPI', 'Cash', 'GPay', 'PhonePe', 'Net Banking'];
 
 export const mockRooms: Room[] = [
-  { id: '1', roomNumber: '101', status: 'Occupied', guestName: 'Alice Johnson', checkIn: yesterdayStr, checkOut: todayStr },
-  { id: '2', roomNumber: '102', status: 'Booked', guestName: 'AD', checkIn: format(addDays(today, 8), 'yyyy-MM-dd'), checkOut: format(addDays(today, 12), 'yyyy-MM-dd') },
+  { id: '1', roomNumber: '101', status: 'Available', guestName: null, checkIn: null, checkOut: null },
+  { id: '2', roomNumber: '102', status: 'Available', guestName: null, checkIn: null, checkOut: null },
   { id: '3', roomNumber: '103', status: 'Available', guestName: null, checkIn: null, checkOut: null },
   { id: '4', roomNumber: '104', status: 'Available', guestName: null, checkIn: null, checkOut: null },
-  { id: '5', roomNumber: '105', status: 'Occupied', guestName: 'Charlie Brown', checkIn: yesterdayStr, checkOut: tomorrowStr },
+  { id: '5', roomNumber: '105', status: 'Available', guestName: null, checkIn: null, checkOut: null },
   { id: '6', roomNumber: '201', status: 'Available', guestName: null, checkIn: null, checkOut: null },
   { id: '7', roomNumber: '202', status: 'Available', guestName: null, checkIn: null, checkOut: null },
 ];
