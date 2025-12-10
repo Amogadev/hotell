@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSummaryData, getRooms } from "@/lib/actions";
 import type { Room } from '@/lib/types';
@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 import { format } from 'date-fns';
+import { useDashboard } from './dashboard-provider';
 
 interface DetailItemProps {
     title: string;
@@ -52,28 +53,34 @@ const RoomInfoDetail = ({ room }: { room: Room }) => (
 
 
 export default function SummarySection() {
+    const { refresh, setRefresh } = useDashboard();
     const [summary, setSummary] = useState<{ totalRooms: number; availableRooms: number; occupiedRooms: number; bookedRooms: number; } | null>(null);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(true);
     
-    useEffect(() => {
-        async function fetchData() {
-            setLoading(true);
-            const [summaryData, roomsData] = await Promise.all([
-                getSummaryData(),
-                getRooms()
-            ]);
-            const bookedRoomsCount = roomsData.filter(room => room.status === 'Booked').length;
-            setSummary({
-                ...summaryData,
-                bookedRooms: bookedRoomsCount,
-            });
-            setRooms(roomsData);
-            setLoading(false);
-        }
-        fetchData();
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const [summaryData, roomsData] = await Promise.all([
+            getSummaryData(),
+            getRooms()
+        ]);
+        const bookedRoomsCount = roomsData.filter(room => room.status === 'Booked').length;
+        setSummary({
+            ...summaryData,
+            bookedRooms: bookedRoomsCount,
+        });
+        setRooms(roomsData);
+        setLoading(false);
     }, []);
+    
+    useEffect(() => {
+        fetchData();
+        if (refresh) {
+            fetchData();
+            setRefresh(false);
+        }
+    }, [refresh, setRefresh, fetchData]);
 
     const occupiedRoomsList = rooms.filter(r => r.status === 'Occupied');
     const bookedRoomsList = rooms.filter(r => r.status === 'Booked');
